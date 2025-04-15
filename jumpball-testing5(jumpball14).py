@@ -2,7 +2,28 @@ import pygame
 import time
 import socket
 import asyncio
+import struct
 pygame.init()
+HOST = '127.0.0.1'  # Server's IP address; change as necessary for online deployment.
+PORT = 12341       # The same port as used by the server.
+
+def send_coordinates(x, y):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((HOST, PORT))
+    
+    # Pack the x and y coordinates into 8 bytes.
+    data = struct.pack("!ii", x, y)
+    
+    # Send the packed data to the server.
+    client.sendall(data)
+    
+    # Receive the server's response (expecting 8 bytes in this case).
+    response = client.recv(8)
+    received_x, received_y = struct.unpack("!ii", response)
+    
+    print(f"Server responded with: x={received_x}, y={received_y}")
+    client.close()
+    return x,y
 white = (255, 255, 255)
 green = (0, 255, 0)
 blue = (0, 0, 128)
@@ -83,7 +104,7 @@ while run1:
                         strtsound.stop()
                         run1 = False
                         # Client setup
-                        HOST = '127.0.0.1'  # Same as server's HOST
+                        HOST = '192.168.1.5'  # Same as server's HOST
                         PORT = 12341       # Same as server's PORT
 
                         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -103,14 +124,19 @@ if mobile_mode == True:
     arrow_right = pygame.transform.scale(arrow_right,(50,50))
     arrow_left = pygame.transform.scale(arrow_left,(60,100))
     jumpbutton = pygame.transform.scale(jumpbutton,(50,50))
-    response = client_socket.recv(1024).decode()
-    print(response)
-    if response != 1:
-        data = 1
-        client_socket.sendall(data.encode())
-        player = 1 
-    else:
-        player = 2
+    while True:
+        try:
+            response = client_socket.recv(1024).decode()
+            print(response)
+            if response != 1:
+                data = 1
+                client_socket.sendall(data.encode())
+                player = 1 
+            else:
+                player = 2
+                break 
+        except:
+            print("waiting for player 2......")
 stime = pygame.time.get_ticks()
 gtime = 90
 s.fill(white)
@@ -202,10 +228,17 @@ def gai():
     elif x < px2 and Vx > 0:
         px2 -= 5
 while run:
+    if player == 1:
+        pxx = px 
+        pyy = py 
+    elif player == 2:
+        pxx = px2 
+        pyy = py2
     if mobile_mode == True:
-        #data = input("Enter message: ")
-        #client_socket.sendall(data.encode())
-        #response = client_socket.recv(1024).decode()
+        if player == 1:
+            px2,py2 = send_coordinates(pxx,pyy)
+        elif player == 2:
+            px,py == send_coordinates(pxx,pyy)
         event1 = pygame.event.get()
         (xm,ym) = pygame.mouse.get_pos()
         if Vyp == 0:
