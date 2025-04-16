@@ -4,6 +4,8 @@ import socket
 import asyncio
 import struct
 pygame.init()
+class ReturnPoint(Exception):
+    r = 1
 HOST = '127.0.0.1'  # Server's IP address; change as necessary for online deployment.
 PORT = 12341       # The same port as used by the server.
 
@@ -51,16 +53,12 @@ s_height = 700
 s = pygame.display.set_mode((s_width,s_height))
 run=True
 #start_menu
-strtimg = pygame.image.load('images/onlinebutton.jpg')
 strtimg2 = pygame.image.load('images/offlinebutton.jpg')
 strtimg3 = pygame.image.load('images/aibutton.png')
-strtimg4 = pygame.image.load('images/autojumpbutton.png')
 strtimg5 = pygame.image.load('images/mobilebutton.png')
 jumpballlogo = pygame.image.load('images/jumpballlogo.jpg')
-strtimg = pygame.transform.scale(strtimg,(100,100))
 strtimg2 = pygame.transform.scale(strtimg2,(100,100))
 strtimg3 = pygame.transform.scale(strtimg3,(100,100))
-strtimg4 = pygame.transform.scale(strtimg4,(100,100))
 strtimg5 = pygame.transform.scale(strtimg5,(100,100))
 jumpballlogo = pygame.transform.scale(jumpballlogo,(800,700))
 strtsound = pygame.mixer.Sound('sounds/menu sound2.wav')
@@ -69,33 +67,26 @@ strtsound.set_volume(0.3)
 stime = pygame.time.get_ticks()
 s.fill(white)
 s.blit(jumpballlogo, (300,0))
-s.blit(strtimg, (100,100))
 s.blit(strtimg2, (100,200))
 s.blit(strtimg3, (100,300))
-s.blit(strtimg4, (100,450))
 s.blit(strtimg5, (100,550))
 pygame.display.update()
 run1 = True
 jump1 = True
 jump2 = True
 mobile_mode = False 
+AImode = False
 while run1:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 (xm,ym) = event.pos 
                 if xm >= 100 and xm <= 200:
                     #offline
-                    if (ym >= 100 and ym <= 200) or (ym >= 200 and ym <= 300) or (ym >= 300 and ym <= 400):
+                    if (ym >= 100 and ym <= 200) or (ym >= 200 and ym <= 300):
                         jump1 = False
                         jump2 = False              
                         strtsound.stop()
                         run1 = False
-                    #autojump
-                    #if (ym >= 450 and ym <= 550):
-                       # jump1 = True
-                       # jump2 = True
-                       # strtsound.stop()
-                       # run1 = False
                     #mobile mode
                     if (ym >= 550 and ym <= 650):
                         jump1 = False
@@ -111,6 +102,13 @@ while run1:
                         client_socket.connect((HOST, PORT))
 
                         print("Connected to the server!")
+                    if (ym >= 300 and ym <= 400):
+                        AImode = True 
+                        jump1 = False 
+                        jump2 = False 
+                        strtsound.stop()
+                        run1 = False 
+                        break
             if event.type == pygame.QUIT:
                 pygame.quit()
         if (pygame.time.get_ticks() - stime) >= 4400:
@@ -218,15 +216,6 @@ gms = pygame.mixer.Sound('sounds/gamestartsound.wav')
 gms.play()
 bouncesound = pygame.mixer.Sound('sounds/bounce sound.wav')
 scoretime = pygame.time.get_ticks()
-def gai():
-    if x < px2 and Vx < 0:
-        px2 -= 5 
-    elif x > px2 and Vx > 0:
-        px2 += 5 
-    elif x > px2 and Vx < 0:
-        px2 -= 5
-    elif x < px2 and Vx > 0:
-        px2 -= 5
 while run:
     if player == 1:
         pxx = px 
@@ -261,6 +250,7 @@ while run:
             stime = pygame.time.get_ticks()
     elif gtime == 0:
         s.fill((255,255,255))
+        raise ReturnPoint
     #scores
     if x >= 1130 and x<=1230:
         if y >= 100 and y <= 200 and pygame.time.get_ticks() - scoretime >= 1000:
@@ -418,42 +408,82 @@ while run:
         bouncesound.play()
         bouncesound.set_volume(0.4)
     cordaddball(ball,x,y)
-    ##player2
-    if Vyp2 < 0:
-        Vyp2 += 0.3
-    elif Vyp2 > 0:
-        Vyp2 += 0.5
-    if Vyp2 > 7:
-        Vyp2 = 7
-    if jump2 == True:
-        Vyp2 = -6
-        jumpsound.play()
-        jumpsound.set_volume(0.1)
-    py2 += Vyp2
-    key = pygame.key.get_pressed()
-    if Vyp2 == 0:
-        if key[pygame.K_DOWN] == True or key[pygame.K_UP] == True:
-            jump2 == True 
-            Vyp2 = -6    
-    if Vyp2 != 0:
-        if key[pygame.K_LEFT] == True:
+    if not AImode:
+        ##player2
+        if Vyp2 < 0:
+            Vyp2 += 0.3
+        elif Vyp2 > 0:
+            Vyp2 += 0.5
+        if Vyp2 > 7:
+            Vyp2 = 7
+        if jump2 == True:
+            Vyp2 = -6
+            jumpsound.play()
+            jumpsound.set_volume(0.1)
+        py2 += Vyp2
+        key = pygame.key.get_pressed()
+        if Vyp2 == 0:
+            if key[pygame.K_DOWN] == True or key[pygame.K_UP] == True:
+                jump2 == True 
+                Vyp2 = -6    
+        if Vyp2 != 0:
+            if key[pygame.K_LEFT] == True:
+                px2 -= 5
+            if key[pygame.K_RIGHT] == True :
+                px2 += 5
+        if py2 <= 500:
+            Vyp2 = -Vyp2
+        if py2 > 600:
+            Vyp2 = 0
+            py2 = 600
+            jump2 = False
+        if px2 >1250 :
             px2 -= 5
-        if key[pygame.K_RIGHT] == True :
+        elif px2 <50 :
             px2 += 5
-    if py2 <= 500:
-        Vyp2 = -Vyp2
-    if py2 > 600:
-        Vyp2 = 0
-        py2 = 600
-        jump2 = False
-    if px2 >1250 :
-        px2 -= 5
-    elif px2 <50 :
-        px2 += 5
-    if py2 >600:
-        py2 -= 5
-    elif py2 <50 :
-        py2 += 5
+        if py2 >600:
+            py2 -= 5
+        elif py2 <50 :
+            py2 += 5
+    else:
+        ##player2
+        if Vyp2 < 0:
+            Vyp2 += 0.3
+        elif Vyp2 > 0:
+            Vyp2 += 0.5
+        if Vyp2 > 7:
+            Vyp2 = 7
+        if jump2:
+            Vyp2 = -6
+            jumpsound.play()
+            jumpsound.set_volume(0.1)
+        py2 += Vyp2
+        if Vyp2 == 0 :
+            jump2 == True
+        if py2 <= 500:
+            if Vyp2 < 0 :
+                Vyp2 = -Vyp2
+        py2 += Vyp2
+        if py2 > 600:
+            Vyp2 = 0
+            py2 = 600
+            jump2 = False
+        if px2 >1250 :
+            px2 -= 5
+        elif px2 <50 :
+            px2 += 5
+        if py2 >600:
+            py2 -= 5
+        elif py2 <50 :
+            py2 += 5
+        if x < px2 and Vx < 0:
+            px2 -= 3 
+        elif x > px2 and Vx > 0:
+            px2 += 3
+        elif x > px2 and Vx < 0:
+            px2 -= 3
+        elif x < px2 and Vx > 0:
+            px2 -= 3
     addplayer(player2,px2,py2)
     if (px2) - x <= 20 and px2 - x >= -40 :
         if (py2 - y < 100 and py2 - y > 50) or (y - py2 < 100 and y - py2 > 50):
