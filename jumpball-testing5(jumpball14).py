@@ -4,8 +4,6 @@ import socket
 import asyncio
 import struct
 pygame.init()
-class ReturnPoint(Exception):
-    r = 1
 HOST = '127.0.0.1'  # Server's IP address; change as necessary for online deployment.
 PORT = 12341       # The same port as used by the server.
 
@@ -56,18 +54,18 @@ run=True
 strtimg2 = pygame.image.load('images/offlinebutton.jpg')
 strtimg3 = pygame.image.load('images/aibutton.png')
 strtimg5 = pygame.image.load('images/mobilebutton.png')
-jumpballlogo = pygame.image.load('images/jumpballlogo.jpg')
+jumpballlogo = pygame.image.load('images/jumpballlogo.jpeg')
 strtimg2 = pygame.transform.scale(strtimg2,(100,100))
 strtimg3 = pygame.transform.scale(strtimg3,(100,100))
 strtimg5 = pygame.transform.scale(strtimg5,(100,100))
-jumpballlogo = pygame.transform.scale(jumpballlogo,(800,700))
+jumpballlogo = pygame.transform.scale(jumpballlogo,(1327,900))
 strtsound = pygame.mixer.Sound('sounds/menu sound2.wav')
 strtsound.play()
 strtsound.set_volume(0.3)
 stime = pygame.time.get_ticks()
 s.fill(white)
-s.blit(jumpballlogo, (300,0))
-s.blit(strtimg2, (100,200))
+s.blit(jumpballlogo, (0,-100))
+s.blit(strtimg2, (100,100))
 s.blit(strtimg3, (100,300))
 s.blit(strtimg5, (100,550))
 pygame.display.update()
@@ -82,7 +80,7 @@ while run1:
                 (xm,ym) = event.pos 
                 if xm >= 100 and xm <= 200:
                     #offline
-                    if (ym >= 100 and ym <= 200) or (ym >= 200 and ym <= 300):
+                    if (ym >= 100 and ym <= 200):
                         jump1 = False
                         jump2 = False              
                         strtsound.stop()
@@ -115,6 +113,7 @@ while run1:
             strtsound.play()
             strtsound.set_volume(0.1)
 strtsound.stop()
+mobile_mode = False
 if mobile_mode == True:
     arrow_right = pygame.image.load('images/rightarrow.png')
     arrow_left = pygame.image.load('images/leftarrow.png')
@@ -207,8 +206,9 @@ m=0
 y_time=0
 Vy = 0
 alpha = -1
-MaxVy = 10
+MaxVy = 6
 Vx = 0
+MaxVx = 4
 score1,score2 = 0,0
 #jumpingsound
 jumpsound = pygame.mixer.Sound('sounds/jumping sound.wav')
@@ -217,6 +217,10 @@ gms.play()
 bouncesound = pygame.mixer.Sound('sounds/bounce sound.wav')
 scoretime = pygame.time.get_ticks()
 while run:
+    if Vx > MaxVx:
+        Vx = MaxVx
+    if Vy > MaxVy:
+        Vy = MaxVy
     if player == 1:
         pxx = px 
         pyy = py 
@@ -250,7 +254,6 @@ while run:
             stime = pygame.time.get_ticks()
     elif gtime == 0:
         s.fill((255,255,255))
-        raise ReturnPoint
     #scores
     if x >= 1130 and x<=1230:
         if y >= 100 and y <= 200 and pygame.time.get_ticks() - scoretime >= 1000:
@@ -266,6 +269,10 @@ while run:
             Vx = 7
             scoresound.play()
             scoresound.set_volume(0.3)
+    if Vx > MaxVx:
+        Vx = MaxVx
+    if Vy > MaxVy:
+        Vy = MaxVy
     score = scorefont.render(f'{score1} - score - {score2}',True,(0,0,0))
     time_remaining = scorefont.render(str(gtime),True,(0,0,0))
     s.blit(scoreboard, (530,10))
@@ -366,6 +373,10 @@ while run:
                 Vy -= 2
             else:
                 Vy = -Vy + 1
+    if Vx > MaxVx:
+        Vx = MaxVx
+    if Vy > MaxVy:
+        Vy = MaxVy
     x += Vx
     cordaddball(ball,x,y)
     #if (player.y) - y < 40  and player.y - y > -20 :
@@ -500,6 +511,10 @@ while run:
                 Vy -= 2
             else:
                 Vy = -Vy + 1
+    if Vx > MaxVx:
+        Vx = MaxVx
+    if Vy > MaxVy:
+        Vy = MaxVy
     x += Vx
     #if (player2.y) - y < 40  and player2.y - y > -20 :
         #if (player2.x - x < 100 and player2.x - x > 50) or (x - player2.x < 100 and x - player2.x > 50):
