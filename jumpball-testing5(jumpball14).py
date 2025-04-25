@@ -7,6 +7,8 @@ pygame.init()
 HOST = '127.0.0.1'  # Server's IP address; change as necessary for online deployment.
 PORT = 12341       # The same port as used by the server.
 
+pause_button = pygame.image.load("images/pause button.png")
+pause_button = pygame.transform.scale(pause_button,(50,50))
 def send_coordinates(x, y):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((HOST, PORT))
@@ -216,7 +218,160 @@ gms = pygame.mixer.Sound('sounds/gamestartsound.wav')
 gms.play()
 bouncesound = pygame.mixer.Sound('sounds/bounce sound.wav')
 scoretime = pygame.time.get_ticks()
+#all the things on top for returning to the main menu
+def show_start_menu_and_initialize():
+    # Load images
+    strtimg2 = pygame.image.load('images/offlinebutton.jpg')
+    strtimg3 = pygame.image.load('images/aibutton.png')
+    strtimg5 = pygame.image.load('images/mobilebutton.png')
+    jumpballlogo = pygame.image.load('images/jumpballlogo.jpeg')
+    strtimg2 = pygame.transform.scale(strtimg2, (100, 100))
+    strtimg3 = pygame.transform.scale(strtimg3, (100, 100))
+    strtimg5 = pygame.transform.scale(strtimg5, (100, 100))
+    jumpballlogo = pygame.transform.scale(jumpballlogo, (1327, 900))
+
+    # Load and play start sound
+    strtsound = pygame.mixer.Sound('sounds/menu sound2.wav')
+    strtsound.play()
+    strtsound.set_volume(0.3)
+
+    stime = pygame.time.get_ticks()
+    s.fill(((255,255,255)))
+    s.blit(jumpballlogo, (0, -100))
+    s.blit(strtimg2, (100, 100))
+    s.blit(strtimg3, (100, 300))
+    s.blit(strtimg5, (100, 550))
+    pygame.display.update()
+
+    run1 = True
+    jump1 = True
+    jump2 = True
+    mobile_mode = False
+    AImode = False
+
+    while run1:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                (xm, ym) = event.pos
+                if 100 <= xm <= 200:
+                    if 100 <= ym <= 200:
+                        jump1 = False
+                        jump2 = False
+                        strtsound.stop()
+                        run1 = False
+                    elif 550 <= ym <= 650:
+                        jump1 = False
+                        jump2 = False
+                        mobile_mode = True
+                        strtsound.stop()
+                        run1 = False
+                        HOST = '192.168.1.5'
+                        PORT = 12341
+                        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        client_socket.connect((HOST, PORT))
+                        print("Connected to the server!")
+                    elif 300 <= ym <= 400:
+                        AImode = True
+                        jump1 = False
+                        jump2 = False
+                        strtsound.stop()
+                        run1 = False
+                        break
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+        if (pygame.time.get_ticks() - stime) >= 4400:
+            strtsound.play()
+            strtsound.set_volume(0.1)
+
+    strtsound.stop()
+
+    if mobile_mode:
+        arrow_right = pygame.image.load('images/rightarrow.png')
+        arrow_left = pygame.image.load('images/leftarrow.png')
+        jumpbutton = pygame.image.load('images/jumpbutton.png')
+        arrow_right = pygame.transform.scale(arrow_right, (50, 50))
+        arrow_left = pygame.transform.scale(arrow_left, (60, 100))
+        jumpbutton = pygame.transform.scale(jumpbutton, (50, 50))
+
+        while True:
+            try:
+                response = client_socket.recv(1024).decode()
+                print(response)
+                if response != '1':
+                    data = '1'
+                    client_socket.sendall(data.encode())
+                    player = 1
+                else:
+                    player = 2
+                    break
+            except:
+                print("waiting for player 2......")
+
+    stime = pygame.time.get_ticks()
+    gtime = 90
+    s.fill(((0,0,0)))
+    pygame.display.update()
+
+    # Countdown sequence
+    for count, sound_path in [("3", "sounds/s3.wav"), ("2", "sounds/s2.wav"), ("1", "sounds/s1.wav")]:
+        sound = pygame.mixer.Sound(sound_path)
+        img = pygame.image.load(f'images/{count}.png')
+        s.fill((255, 255, 255))
+        s.blit(img, (0, 0))
+        pygame.display.update()
+        sound.play()
+        sound.set_volume(0.1)
+        time.sleep(1)
+        sound.stop()
+
+    # Game music
+    sound = pygame.mixer.Sound('sounds/lige_bartar.mp3')
+    sound.play()
+    sound.set_volume(0.4)
+    music_time = pygame.time.get_ticks()
+
+    # Load game assets
+    backg = pygame.image.load('images/Screenshot (1).png')
+    pygame.display.set_caption("jumpball")
+    ball = pygame.image.load('images/ball_prev_ui.png')
+    pygame.display.set_icon(ball)
+
+    start_time = pygame.time.get_ticks()
+    tm = start_time
+    m = 0
+    y_time = 0
+    Vy = 0
+    alpha = -1
+    MaxVy = 6
+    Vx = 0
+    MaxVx = 4
+    score1, score2 = 0, 0
+
+    jumpsound = pygame.mixer.Sound('sounds/jumping sound.wav')
+    gms = pygame.mixer.Sound('sounds/gamestartsound.wav')
+    gms.play()
+    bouncesound = pygame.mixer.Sound('sounds/bounce sound.wav')
+    scoretime = pygame.time.get_ticks()
+    
+#main game loop
 while run:
+    (xm,ym) = pygame.mouse.get_pos()
+    mouse_clicked = pygame.mouse.get_pressed()
+    mouse_clicked = mouse_clicked[0]
+    if xm < 50 and ym < 50:
+        pause_button = pygame.transform.scale(pause_button,(75,75))
+        if mouse_clicked:
+            run2 = True 
+            while run2:
+                pass 
+                #here will be the restart , exit options
+    else:
+        pause_button = pygame.transform.scale(pause_button,(50,50))
+    s.blit(pause_button,(0,0))
+    mouse_clicked = pygame.mouse.get_pressed()
+    mouse_clicked = mouse_clicked[0]
     if Vx > MaxVx:
         Vx = MaxVx
     if Vy > MaxVy:
@@ -317,6 +472,8 @@ while run:
         s.blit(jumpbutton,(100,600))
     if gtime == 0:
         s.fill((255,255,255))
+        s.blit(pause_button,(0,0))
+    s.blit(pause_button,(0,0))
     pygame.display.update()
     y_time2=pygame.time.get_ticks()-y_time
     tim=tm
@@ -537,6 +694,8 @@ while run:
         s.blit(jumpbutton,(100,600))
     if gtime == 0:
         s.fill((255,255,255))
+        s.blit(pause_button,(0,0))
+    s.blit(pause_button,(0,0))
     pygame.display.update()
     pygame.time.Clock().tick(5000)
     addnet(barrier1,bx,by)
