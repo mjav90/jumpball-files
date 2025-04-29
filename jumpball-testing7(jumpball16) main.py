@@ -3,12 +3,56 @@ import time
 import socket
 import asyncio
 import struct
+import cv2
+import numpy as np
+
 pygame.init()
 HOST = '127.0.0.1'  # Server's IP address; change as necessary for online deployment.
 PORT = 12341       # The same port as used by the server.
 
+cap=pygame.display.set_caption("jumpball")
+
 pause_button = pygame.image.load("images/pause button.png")
 pause_button = pygame.transform.scale(pause_button,(50,50))
+
+pause_qrr = pygame.image.load("images/qrr button.png")
+pause_qrr = pygame.transform.scale(pause_qrr,(1327,700))
+
+def play_video(video_path, window_size=(640, 480)):
+    # Initialize OpenCV video capture
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Error: Cannot open video file.")
+        return
+
+    # Get video FPS for frame timing
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30
+
+    clock = pygame.time.Clock()
+
+    running = True
+    while running:
+        ret, frame = cap.read()
+        if not ret:
+            break  # End of video
+
+        # Convert frame to RGB and rotate for Pygame
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = np.rot90(frame)
+        frame_surface = pygame.surfarray.make_surface(frame)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Resize to fit window if necessary
+        scaled_surface = pygame.transform.scale(frame_surface, window_size)
+        s.blit(scaled_surface, (0, 0))
+        pygame.display.update()
+        clock.tick(fps)
+
+    cap.release()
+
 def send_coordinates(x, y):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((HOST, PORT))
@@ -53,7 +97,7 @@ s_height = 700
 s = pygame.display.set_mode((s_width,s_height))
 run=True
 #start_menu
-strtimg2 = pygame.image.load('images/offlinebutton.jpg')
+strtimg2 = pygame.image.load('images/offlinebutton.png')
 strtimg3 = pygame.image.load('images/aibutton.png')
 strtimg5 = pygame.image.load('images/mobilebutton.png')
 jumpballlogo = pygame.image.load('images/jumpballlogo.jpeg')
@@ -65,7 +109,7 @@ strtsound = pygame.mixer.Sound('sounds/menu sound2.wav')
 strtsound.play()
 strtsound.set_volume(0.3)
 stime = pygame.time.get_ticks()
-s.fill(white)
+play_video("C:/Users/Asus/jumpball-files/videos/intro.mp4")
 s.blit(jumpballlogo, (0,-100))
 s.blit(strtimg2, (100,100))
 s.blit(strtimg3, (100,300))
@@ -91,17 +135,19 @@ while run1:
                     if (ym >= 550 and ym <= 650):
                         jump1 = False
                         jump2 = False
+                        #for now AI mode will replace online mode
+                        AImode = True
                         mobile_mode = True 
                         strtsound.stop()
                         run1 = False
                         # Client setup
-                        HOST = '192.168.1.5'  # Same as server's HOST
-                        PORT = 12341       # Same as server's PORT
+                        #HOST = '192.168.1.5'  # Same as server's HOST
+                        #PORT = 12341       # Same as server's PORT
 
-                        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        client_socket.connect((HOST, PORT))
+                        #client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        #client_socket.connect((HOST, PORT))
 
-                        print("Connected to the server!")
+                        #print("Connected to the server!")
                     if (ym >= 300 and ym <= 400):
                         AImode = True 
                         jump1 = False 
@@ -115,7 +161,6 @@ while run1:
             strtsound.play()
             strtsound.set_volume(0.1)
 strtsound.stop()
-mobile_mode = False
 if mobile_mode == True:
     arrow_right = pygame.image.load('images/rightarrow.png')
     arrow_left = pygame.image.load('images/leftarrow.png')
@@ -123,19 +168,19 @@ if mobile_mode == True:
     arrow_right = pygame.transform.scale(arrow_right,(50,50))
     arrow_left = pygame.transform.scale(arrow_left,(60,100))
     jumpbutton = pygame.transform.scale(jumpbutton,(50,50))
-    while True:
-        try:
-            response = client_socket.recv(1024).decode()
-            print(response)
-            if response != 1:
-                data = 1
-                client_socket.sendall(data.encode())
-                player = 1 
-            else:
-                player = 2
-                break 
-        except:
-            print("waiting for player 2......")
+    #while True:
+        #try:
+            #response = client_socket.recv(1024).decode()
+            #print(response)
+            #if response != 1:
+                #data = 1
+                #client_socket.sendall(data.encode())
+                #player = 1 
+            #else:
+                #player = 2
+                #break 
+        #except:
+            #print("waiting for player 2......")
 stime = pygame.time.get_ticks()
 gtime = 90
 s.fill(white)
@@ -194,6 +239,7 @@ sound1.play()
 sound1.set_volume(0.1)
 time.sleep(1) 
 sound1.stop()
+
 ##اهنگ بازي
 sound = pygame.mixer.Sound('sounds/lige_bartar.mp3')
 sound.play()
@@ -208,7 +254,7 @@ m=0
 y_time=0
 Vy = 0
 alpha = -1
-MaxVy = 6
+MaxVy = 7
 Vx = 0
 MaxVx = 4
 score1,score2 = 0,0
@@ -357,16 +403,78 @@ def show_start_menu_and_initialize():
     
 #main game loop
 while run:
+    if Vx > MaxVx:
+        Vx = MaxVx - 0.5
+    if Vy > MaxVy:
+        Vy = MaxVy - 0.5
+    addnet(barrier1,bx,by)
+    pygame.draw.rect(s,(255,0,255),(0,257,94,10))
+    pygame.draw.rect(s,(255,0,255),(1233,257,94,10))
+    if x <= 94 and y >= 256 and y <= 270:
+        if Vx < 0:
+            Vx = -Vx 
+        else:
+            Vx += 0.00000001
+        if Vy < 0:
+            Vy = -Vy
+    if x >= 1233 and y >= 256 and y <= 270:
+        if Vx < 0:
+            Vx = -Vx 
+        else:
+            Vx += 0.00000001
+        if Vy < 0:
+            Vy = -Vy
     (xm,ym) = pygame.mouse.get_pos()
     mouse_clicked = pygame.mouse.get_pressed()
     mouse_clicked = mouse_clicked[0]
+    
     if xm < 50 and ym < 50:
         pause_button = pygame.transform.scale(pause_button,(75,75))
         if mouse_clicked:
             run2 = True 
             while run2:
-                pass 
-                #here will be the restart , exit options
+                s.blit(pause_qrr,(0,0))
+                pygame.display.update()
+                (xm,ym) = pygame.mouse.get_pos()
+                mouse_clicked = pygame.mouse.get_pressed()
+                mouse_clicked = mouse_clicked[0]
+                if mouse_clicked:
+                    #quit option
+                    if 90 < xm < 440 and 270 < ym < 415:
+                        run = False 
+                        run2 = False
+                        break
+                    #restart option
+                    elif 507 < xm < 855 and 272 < ym < 411:
+                        sound.stop()
+                        show_start_menu_and_initialize()
+                        #reset
+                        Vx = 0
+                        Vy = 0
+                        score1,score2 = 0,0
+                        x = 600
+                        y = 150
+                        start_time2 = pygame.time.get_ticks()
+                        px = 100
+                        py = 600
+                        Vyp = -6
+                        px2 = 1200
+                        py2 = 600
+                        Vyp2 = -6
+                        gtime = 90
+                        run2 = False
+                        break
+                    #return option
+                    elif 925 < xm < 1260 and 275 < ym < 411:
+                        run2 = False 
+                        break
+                #events
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        run = False
+                        break
+                #here is be the restart , exit and return options
+                
     else:
         pause_button = pygame.transform.scale(pause_button,(50,50))
     s.blit(pause_button,(0,0))
@@ -383,10 +491,10 @@ while run:
         pxx = px2 
         pyy = py2
     if mobile_mode == True:
-        if player == 1:
-            px2,py2 = send_coordinates(pxx,pyy)
-        elif player == 2:
-            px,py == send_coordinates(pxx,pyy)
+        #if player == 1:
+            #px2,py2 = send_coordinates(pxx,pyy)
+        #elif player == 2:
+           #px,py == send_coordinates(pxx,pyy)
         event1 = pygame.event.get()
         (xm,ym) = pygame.mouse.get_pos()
         if Vyp == 0:
@@ -398,17 +506,19 @@ while run:
                 px -= 5
             if 300 < xm < 400 and 600 < ym < 700:
                 px += 5
-    #mobile controls 
+    #mobile controls
     if mobile_mode == True:
         s.blit(arrow_right,(300,600))
         s.blit(arrow_left,(220,575))
         s.blit(jumpbutton,(100,600))
+    
     if gtime != 0:
         if pygame.time.get_ticks() - stime >= 1000:
             gtime -= 1
             stime = pygame.time.get_ticks()
     elif gtime == 0:
         s.fill((255,255,255))
+    
     #scores
     if x >= 1130 and x<=1230:
         if y >= 100 and y <= 200 and pygame.time.get_ticks() - scoretime >= 1000:
@@ -424,10 +534,13 @@ while run:
             Vx = 7
             scoresound.play()
             scoresound.set_volume(0.3)
+    
     if Vx > MaxVx:
         Vx = MaxVx
+    
     if Vy > MaxVy:
         Vy = MaxVy
+    
     score = scorefont.render(f'{score1} - score - {score2}',True,(0,0,0))
     time_remaining = scorefont.render(str(gtime),True,(0,0,0))
     s.blit(scoreboard, (530,10))
@@ -470,6 +583,10 @@ while run:
         s.blit(arrow_right,(300,600))
         s.blit(arrow_left,(220,575))
         s.blit(jumpbutton,(100,600))
+    addnet(barrier1,bx,by)
+    addnet(barrier2,bx2,by2)
+    pygame.draw.rect(s,(255,0,255),(0,257,94,10))
+    pygame.draw.rect(s,(255,0,255),(1233,257,94,10))
     if gtime == 0:
         s.fill((255,255,255))
         s.blit(pause_button,(0,0))
@@ -628,10 +745,10 @@ while run:
         py2 += Vyp2
         if Vyp2 == 0 :
             jump2 == True
+            Vyp2 = -6
         if py2 <= 500:
             if Vyp2 < 0 :
                 Vyp2 = -Vyp2
-        py2 += Vyp2
         if py2 > 600:
             Vyp2 = 0
             py2 = 600
@@ -649,7 +766,7 @@ while run:
         elif x > px2 and Vx > 0:
             px2 += 3
         elif x > px2 and Vx < 0:
-            px2 -= 3
+            px2 += 3
         elif x < px2 and Vx > 0:
             px2 -= 3
     addplayer(player2,px2,py2)
@@ -687,18 +804,27 @@ while run:
     s.blit(scoreboard, (530,10))
     s.blit(score,(580,35))
     s.blit(time_remaining, (650,120))
+    
     #mobile controls 
     if mobile_mode == True:
         s.blit(arrow_right,(300,600))
         s.blit(arrow_left,(220,575))
         s.blit(jumpbutton,(100,600))
+        
+    pygame.draw.rect(s,(255,0,255),(0,257,94,10))
+    pygame.draw.rect(s,(255,0,255),(1233,257,94,10))
+    addnet(barrier1,bx,by)
     if gtime == 0:
         s.fill((255,255,255))
         s.blit(pause_button,(0,0))
+        
     s.blit(pause_button,(0,0))
+    
     pygame.display.update()
     pygame.time.Clock().tick(5000)
+    
     addnet(barrier1,bx,by)
     addnet(barrier2,bx2,by2)
+    
 print(time1[0],":",time1[1])
 pygame.quit()
