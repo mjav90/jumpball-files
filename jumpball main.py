@@ -7,6 +7,8 @@ import cv2
 import numpy as np
 
 pygame.init()
+
+background_color = (0, 0, 0)  # Black (or choose your desired background color)
 HOST = '127.0.0.1'  # Server's IP address; change as necessary for online deployment.
 PORT = 12341       # The same port as used by the server.
 
@@ -47,7 +49,7 @@ def play_video(video_path, window_size=(640, 480)):
 
         # Resize to fit window if necessary
         scaled_surface = pygame.transform.scale(frame_surface, window_size)
-        s.blit(scaled_surface, (0, 0))
+        s.blit(scaled_surface, (700, 100))
         pygame.display.update()
         clock.tick(fps)
 
@@ -110,7 +112,6 @@ strtsound.play()
 strtsound.set_volume(0.3)
 stime = pygame.time.get_ticks()
 play_video("videos/intro.mp4")
-s.blit(jumpballlogo, (0,-100))
 s.blit(strtimg2, (100,100))
 s.blit(strtimg3, (100,300))
 s.blit(strtimg5, (100,550))
@@ -406,6 +407,9 @@ def show_start_menu_and_initialize():
     return mobile_mode,AImode
 #main game loop
 while run:
+    addnet(barrier1,bx,by)
+    addnet(barrier2,bx2,by2)
+    
     if gtime == 0:
         if score1 > score2 :
             winner.append("player 1 wins!")
@@ -420,22 +424,25 @@ while run:
     if Vy > MaxVy:
         Vy = MaxVy - 0.5
     addnet(barrier1,bx,by)
+    addnet(barrier2,bx2,by2)
     pygame.draw.rect(s,(255,0,255),(0,257,94,10))
     pygame.draw.rect(s,(255,0,255),(1233,257,94,10))
-    if x <= 94 and y >= 256 and y <= 270:
+    if x <= 100 and y >= 256 and y <= 270:
         if Vx < 0:
             Vx = -Vx 
         else:
             Vx += 0.00000001
         if Vy < 0:
             Vy = -Vy
-    if x >= 1233 and y >= 256 and y <= 270:
-        if Vx < 0:
+            
+    if x >= 1225 and y >= 256 and y <= 300:
+        if Vx > 0:
             Vx = -Vx 
         else:
-            Vx += 0.00000001
+            Vx -= 0.00000001
         if Vy < 0:
             Vy = -Vy
+    
     (xm,ym) = pygame.mouse.get_pos()
     mouse_clicked = pygame.mouse.get_pressed()
     mouse_clicked = mouse_clicked[0]
@@ -519,6 +526,10 @@ while run:
                 px -= 5
             if 300 < xm < 400 and 600 < ym < 700:
                 px += 5
+                 
+    addnet(barrier1,bx,by)
+    addnet(barrier2,bx2,by2)
+    
     #mobile controls
     if mobile_mode == True:
         s.blit(arrow_right,(300,600))
@@ -566,8 +577,6 @@ while run:
     s.blit(scoreboard, (530,10))
     s.blit(score,(580,35))
     s.blit(time_remaining, (650,120))
-    addnet(barrier1,bx,by)
-    addnet(barrier2,bx2,by2)
     #pygame.draw.rect(s,(1,0,1),(1280,150,90,10))
     #pygame.draw.rect(s,(1,0,1),(0,300,90,900))
     if y <= 110:
@@ -598,17 +607,22 @@ while run:
         y = 200
     x += Vx
     y += Vy
+    
+    addnet(barrier1,bx,by)
+    addnet(barrier2,bx2,by2)
+    
     #mobile controls 
     if mobile_mode == True:
         s.blit(arrow_right,(300,600))
         s.blit(arrow_left,(220,575))
         s.blit(jumpbutton,(100,600))
-    addnet(barrier1,bx,by)
-    addnet(barrier2,bx2,by2)
+    
     pygame.draw.rect(s,(255,0,255),(0,257,94,10))
     pygame.draw.rect(s,(255,0,255),(1233,257,94,10))
+    
     addnet(barrier1,bx,by)
     addnet(barrier2,bx2,by2)
+    
     if gtime == 0:
         s.fill((255,255,255))
         s.blit(pause_button,(0,0))
@@ -622,6 +636,9 @@ while run:
         s.blit(win_screen,(500,400))
     s.blit(pause_button,(0,0))
     pygame.display.update()
+    
+    addnet(barrier1,bx,by)
+    
     y_time2=pygame.time.get_ticks()-y_time
     tim=tm
     tm=(pygame.time.get_ticks()-start_time)//1000
@@ -632,10 +649,12 @@ while run:
         m=m+1
     s.fill((0,0,0))
     s.blit(backg,(0,0))
-    addnet(barrier1,bx,by)
-    addnet(barrier2,bx2,by2)
     s.blit(scoreboard, (530,10))
     s.blit(score,(580,35))
+    
+    addnet(barrier1,bx,by)
+    addnet(barrier2,bx2,by2)
+    
     #player1#################################################################
     py += Vyp
     key = pygame.key.get_pressed()
@@ -683,18 +702,21 @@ while run:
         Vy = MaxVy - 0.5
     x += Vx
     cordaddball(ball,x,y)
+    
     #if (player.y) - y < 40  and player.y - y > -20 :
         #if (player.x - x < 100 and player.x - x > 50) or (x - player.x < 100 and x - player.x > 50):
             #Vy = -2        
     #elif (player.y) - y <= -50 and player.y - y >= -100 :
         #if (player.x - x < 100 and player.x - x > 50) or (x - player.x < 100 and x - player.x > 50):
             #Vy = 2
+    addnet(barrier1,bx,by)       
     #events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
             break
     #end of events 
+    
     #ball mechanics 
     if  y<600 and y_time2>=1000:
             y=y+round(Vy)
@@ -727,6 +749,7 @@ while run:
         Vx = MaxVx - 0.5
     if Vy > MaxVy:
         Vy = MaxVy - 0.5
+
     if not AImode:
         ##player2
         if Vyp2 < 0:
@@ -813,10 +836,10 @@ while run:
                 Vx *= -0.000000000001 
             else:
                 Vx -= 5
-    if px2 - x >= -70 and px2 - x <= 70:
-        if py2 - y < 50 and py2 - y >= 0:
+    if px2 - x >= -70 and px2 - x <= 100:
+        if py2 - y <= 100 and py2 - y >= 0:
             if Vy < 0:
-                Vy -= 2
+                Vy -= 4
             else:
                 Vy = -Vy + 1
     if Vx > MaxVx:
@@ -824,22 +847,24 @@ while run:
     if Vy > MaxVy:
         Vy = MaxVy
     x += Vx
+    #########
     #if (player2.y) - y < 40  and player2.y - y > -20 :
         #if (player2.x - x < 100 and player2.x - x > 50) or (x - player2.x < 100 and x - player2.x > 50):
             # Vy = -2
     #elif (player2.y) - y <= -50 and player2.y - y >= -100 :
         #if (player2.x - x < 100 and player2.x - x > 50) or (x - player2.x < 100 and x - player2.x > 50):
             #Vy = 2
+    ######
     cordaddball(ball,x,y)
     addplayer(player,px,py)
     addplayer(player2,px2,py2)
-    addnet(barrier1,bx,by)
-    addnet(barrier2,bx2,by2)
     s.blit(scoreboard, (530,10))
     s.blit(score,(580,35))
     s.blit(time_remaining, (650,120))
+    
     addnet(barrier1,bx,by)
     addnet(barrier2,bx2,by2)
+    
     #mobile controls 
     if mobile_mode == True:
         s.blit(arrow_right,(300,600))
@@ -848,8 +873,7 @@ while run:
         
     pygame.draw.rect(s,(255,0,255),(0,257,94,10))
     pygame.draw.rect(s,(255,0,255),(1233,257,94,10))
-    addnet(barrier1,bx,by)
-    addnet(barrier2,bx2,by2)
+    
     if gtime == 0:
         s.fill((255,255,255))
         s.blit(pause_button,(0,0))
@@ -868,6 +892,5 @@ while run:
     
     addnet(barrier1,bx,by)
     addnet(barrier2,bx2,by2)
-    
 print(time1[0],":",time1[1])
 pygame.quit()
